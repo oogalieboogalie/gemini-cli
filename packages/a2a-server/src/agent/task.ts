@@ -16,10 +16,7 @@ import {
   parseAndFormatApiError,
   safeLiteralReplace,
   type AnyDeclarativeTool,
-} from '@google/gemini-cli-core';
-import type {
-  ToolCall} from '@google/gemini-cli-core';
-import {
+  type ToolCall,
   type ToolConfirmationPayload,
   type CompletedToolCall,
   type ToolCallRequestInfo,
@@ -55,6 +52,8 @@ import type {
   ThoughtSummary,
 } from '../types.js';
 import type { PartUnion, Part as genAiPart } from '@google/genai';
+
+type UnionKeys<T> = T extends T ? keyof T : never;
 
 export class Task {
   id: string;
@@ -440,7 +439,7 @@ export class Task {
 
   private _pickFields<
     T extends ToolCall | AnyDeclarativeTool,
-    K extends keyof T,
+    K extends UnionKeys<T>,
   >(from: T, ...fields: K[]): T {
     const ret = {} as Pick<T, K>;
     for (const field of fields) {
@@ -465,7 +464,7 @@ export class Task {
       'request',
       'status',
       'confirmationDetails',
-      'liveResult',
+      'liveOutput',
       'response',
     );
 
