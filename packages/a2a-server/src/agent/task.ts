@@ -15,18 +15,20 @@ import {
   isNodeError,
   parseAndFormatApiError,
   safeLiteralReplace,
+  type AnyDeclarativeTool,
 } from '@google/gemini-cli-core';
 import type {
-  ToolConfirmationPayload,
-  CompletedToolCall,
-  ToolCall,
-  ToolCallRequestInfo,
-  ServerGeminiErrorEvent,
-  ServerGeminiStreamEvent,
-  ToolCallConfirmationDetails,
-  Config,
-  UserTierId,
-  AnsiOutput,
+  ToolCall} from '@google/gemini-cli-core';
+import {
+  type ToolConfirmationPayload,
+  type CompletedToolCall,
+  type ToolCallRequestInfo,
+  type ServerGeminiErrorEvent,
+  type ServerGeminiStreamEvent,
+  type ToolCallConfirmationDetails,
+  type Config,
+  type UserTierId,
+  type AnsiOutput,
 } from '@google/gemini-cli-core';
 import type { RequestContext } from '@a2a-js/sdk/server';
 import { type ExecutionEventBus } from '@a2a-js/sdk/server';
@@ -436,6 +438,19 @@ export class Task {
     return scheduler;
   }
 
+  private _pickFields<
+    T extends ToolCall | AnyDeclarativeTool,
+    K extends keyof T,
+  >(from: T, ...fields: K[]): T {
+    const ret = {} as Pick<T, K>;
+    for (const field of fields) {
+      if (field in from) {
+        ret[field] = from[field];
+      }
+    }
+    return ret as T;
+  }
+
   private toolStatusMessage(
     tc: ToolCall,
     taskId: string,
@@ -444,33 +459,33 @@ export class Task {
     const messageParts: Part[] = [];
 
     // Create a serializable version of the ToolCall (pick necesssary
-    // properties/avoic methods causing circular reference errors)
-    const serializableToolCall: { [key: string]: unknown } = {
-      request: tc.request,
-      status: tc.status,
-    };
-
-    // For WaitingToolCall type
-    if ('confirmationDetails' in tc) {
-      serializableToolCall['confirmationDetails'] = tc.confirmationDetails;
-    }
+    // properties/avoid methods causing circular reference errors)
+    const serializableToolCall = this._pickFields(
+      tc,
+      'request',
+      'status',
+      'confirmationDetails',
+      'liveResult',
+      'response',
+    );
 
     if (tc.tool) {
-      serializableToolCall['tool'] = {
-        name: tc.tool.name,
-        displayName: tc.tool.displayName,
-        description: tc.tool.description,
-        kind: tc.tool.kind,
-        isOutputMarkdown: tc.tool.isOutputMarkdown,
-        canUpdateOutput: tc.tool.canUpdateOutput,
-        schema: tc.tool.schema,
-        parameterSchema: tc.tool.parameterSchema,
-      };
+      serializableToolCall.tool = this._pickFields(
+        tc.tool,
+        'name',
+        'displayName',
+        'description',
+        'kind',
+        'isOutputMarkdown',
+        'canUpdateOutput',
+        'schema',
+        'parameterSchema',
+      );
     }
 
     messageParts.push({
       kind: 'data',
-      data: serializableToolCall as ToolCall,
+      data: serializableToolCall,
     } as Part);
 
     return {
