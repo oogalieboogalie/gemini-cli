@@ -88,6 +88,7 @@ import { useSessionStats } from './contexts/SessionContext.js';
 import { useGitBranchName } from './hooks/useGitBranchName.js';
 import { useExtensionUpdates } from './hooks/useExtensionUpdates.js';
 import { ShellFocusContext } from './contexts/ShellFocusContext.js';
+import { relaunchApp } from '../utils/processUtils.js';
 
 const CTRL_EXIT_PROMPT_DURATION_MS = 1000;
 
@@ -970,7 +971,7 @@ Logging in with Google... Please restart Gemini CLI to continue.
   useKeypress(
     (key) => {
       if (key.name === 'r' || key.name === 'R') {
-        process.exit(0);
+        relaunchApp();
       }
     },
     { isActive: showIdeRestartPrompt },
@@ -1009,6 +1010,7 @@ Logging in with Google... Please restart Gemini CLI to continue.
     isAuthDialogOpen ||
     isEditorDialogOpen ||
     showPrivacyNotice ||
+    showIdeRestartPrompt ||
     !!proQuotaRequest;
 
   const pendingHistoryItems = useMemo(

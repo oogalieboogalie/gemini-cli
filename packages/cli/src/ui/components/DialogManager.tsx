@@ -46,8 +46,8 @@ export const DialogManager = ({ addItem }: DialogManagerProps) => {
     return (
       <Box borderStyle="round" borderColor={theme.status.warning} paddingX={1}>
         <Text color={theme.status.warning}>
-          Workspace trust has changed. Press &apos;r&apos; to restart Gemini to
-          apply the changes.
+          Workspace trust has changed due to IDE connection or trust change.
+          Press &apos;r&apos; to restart Gemini to apply the changes.
         </Text>
       </Box>
     );
