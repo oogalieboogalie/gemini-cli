@@ -440,14 +440,14 @@ export class Task {
   private _pickFields<
     T extends ToolCall | AnyDeclarativeTool,
     K extends UnionKeys<T>,
-  >(from: T, ...fields: K[]): T {
+  >(from: T, ...fields: K[]): Pick<T, K> {
     const ret = {} as Pick<T, K>;
     for (const field of fields) {
       if (field in from) {
         ret[field] = from[field];
       }
     }
-    return ret as T;
+    return ret;
   }
 
   private toolStatusMessage(
