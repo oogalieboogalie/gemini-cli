@@ -28,7 +28,7 @@ export const getStatusColor = (
   if (value >= thresholds.yellow) {
     return theme.status.warning;
   }
-  if (thresholds.red !== undefined && value >= thresholds.red) {
+  if (thresholds.red != null && value >= thresholds.red) {
     return theme.status.error;
   }
   return options.defaultColor ?? theme.status.error;
