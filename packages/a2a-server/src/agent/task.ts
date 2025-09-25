@@ -459,7 +459,7 @@ export class Task {
 
     // Create a serializable version of the ToolCall (pick necesssary
     // properties/avoid methods causing circular reference errors)
-    const serializableToolCall = this._pickFields(
+    const serializableToolCall: Partial<ToolCall> = this._pickFields(
       tc,
       'request',
       'status',
