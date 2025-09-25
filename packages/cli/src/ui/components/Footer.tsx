@@ -23,12 +23,6 @@ import { useUIState } from '../contexts/UIStateContext.js';
 import { useConfig } from '../contexts/ConfigContext.js';
 import { useSettings } from '../contexts/SettingsContext.js';
 import { useVimMode } from '../contexts/VimModeContext.js';
-vi.mock('../contexts/VimModeContext.js', () => ({
-  useVimMode: vi.fn(() => ({
-    vimEnabled: false,
-    vimMode: 'NORMAL',
-  })),
-}));
 
 export const Footer: React.FC = () => {
   const uiState = useUIState();
