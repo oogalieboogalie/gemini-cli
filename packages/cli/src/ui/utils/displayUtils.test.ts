@@ -21,6 +21,7 @@ describe('displayUtils', () => {
     const thresholds = {
       green: 80,
       yellow: 50,
+      red: 20,
     };
 
     it('should return green for values >= green threshold', () => {
@@ -33,14 +34,19 @@ describe('displayUtils', () => {
       expect(getStatusColor(50, thresholds)).toBe(Colors.AccentYellow);
     });
 
-    it('should return red for values < yellow threshold', () => {
+    it('should return red for values < yellow and >= red threshold', () => {
       expect(getStatusColor(49, thresholds)).toBe(Colors.AccentRed);
+      expect(getStatusColor(20, thresholds)).toBe(Colors.AccentRed);
+    });
+
+    it('should return error for values < red threshold', () => {
+      expect(getStatusColor(19, thresholds)).toBe(Colors.AccentRed);
       expect(getStatusColor(0, thresholds)).toBe(Colors.AccentRed);
     });
 
-    it('should return defaultColor for values < yellow threshold when provided', () => {
+    it('should return defaultColor for values < red threshold when provided', () => {
       expect(
-        getStatusColor(49, thresholds, { defaultColor: Colors.Foreground }),
+        getStatusColor(19, thresholds, { defaultColor: Colors.Foreground }),
       ).toBe(Colors.Foreground);
     });
   });
