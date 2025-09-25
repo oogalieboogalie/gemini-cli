@@ -19,6 +19,7 @@ import type { LoadedSettings } from '../../config/settings.js';
 vi.mock('../hooks/useTerminalSize.js');
 const useTerminalSizeMock = vi.mocked(useTerminalSize.useTerminalSize);
 
+vi.mock('../contexts/VimModeContext.js');
 const mockedUseVimMode = useVimMode as Mock;
 mockedUseVimMode.mockReturnValue({
   isVimEnabled: false,
