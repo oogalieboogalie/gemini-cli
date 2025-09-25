@@ -4,11 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Unset NO_COLOR environment variable to ensure consistent theme behavior between local and CI test runs
-if (process.env.NO_COLOR !== undefined) {
-  delete process.env.NO_COLOR;
-}
-
 import {
   mkdir,
   readdir,
@@ -21,21 +16,17 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as os from 'node:os';
 
-import {
-  GEMINI_CONFIG_DIR,
-  DEFAULT_CONTEXT_FILENAME,
-} from '../packages/core/src/tools/memoryTool.js';
+// Unset NO_COLOR environment variable to ensure consistent theme behavior between local and CI test runs
+if (process.env.NO_COLOR !== undefined) {
+  delete process.env.NO_COLOR;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 const integrationTestsDir = join(rootDir, '.integration-tests');
 let runDir = ''; // Make runDir accessible in teardown
 
-const memoryFilePath = join(
-  os.homedir(),
-  GEMINI_CONFIG_DIR,
-  DEFAULT_CONTEXT_FILENAME,
-);
+const memoryFilePath = join(os.homedir(), '.gemini', 'GEMINI.md');
 let originalMemoryContent: string | null = null;
 
 export async function setup() {

@@ -6,14 +6,13 @@
 
 import { execSync, spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { env } from 'node:process';
 import { DEFAULT_GEMINI_MODEL } from '../packages/core/src/config/models.js';
 import fs from 'node:fs';
 import * as pty from '@lydell/node-pty';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+//const DEFAULT_GEMINI_MODEL = 'gemini-2.5-pro';
 
 function sanitizeTestName(name: string) {
   return name
@@ -130,13 +129,11 @@ interface ParsedLog {
 }
 
 export class TestRig {
-  bundlePath: string;
   testDir: string | null;
   testName?: string;
   _lastRunStdout?: string;
 
   constructor() {
-    this.bundlePath = join(__dirname, '..', 'bundle/gemini.js');
     this.testDir = null;
   }
 
@@ -201,7 +198,7 @@ export class TestRig {
       | { prompt?: string; stdin?: string; stdinDoesNotEnd?: boolean },
     ...args: string[]
   ): Promise<string> {
-    const commandArgs = [this.bundlePath, '--yolo'];
+    const commandArgs = ['--yolo'];
     const execOptions: {
       cwd: string;
       encoding: 'utf-8';
@@ -227,7 +224,7 @@ export class TestRig {
 
     commandArgs.push(...args);
 
-    const child = spawn('node', commandArgs, {
+    const child = spawn('gemini', commandArgs, {
       cwd: this.testDir!,
       stdio: 'pipe',
       env: process.env,
@@ -766,9 +763,9 @@ export class TestRig {
     ptyProcess: pty.IPty;
     promise: Promise<{ exitCode: number; signal?: number; output: string }>;
   } {
-    const commandArgs = [this.bundlePath, '--yolo', ...args];
+    const commandArgs = ['--yolo', ...args];
 
-    const ptyProcess = pty.spawn('node', commandArgs, {
+    const ptyProcess = pty.spawn('gemini', commandArgs, {
       name: 'xterm-color',
       cols: 80,
       rows: 30,
