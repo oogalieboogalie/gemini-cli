@@ -176,7 +176,7 @@ jobs:
             --label 'kind/bug,release-failure,priority/p0'
 
       - name: 'Comment Success on Original PR'
-        if: '${{ success() && github.event.inputs.original_pr }}'
+        if: '${{ success() && github.event.inputs.original_pr && github.event.inputs.dry_run == false }}'
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           ORIGINAL_PR: '${{ github.event.inputs.original_pr }}'
@@ -193,7 +193,7 @@ jobs:
           node scripts/releasing/patch-comment.js
 
       - name: 'Comment Failure on Original PR'
-        if: '${{ failure() && github.event.inputs.original_pr }}'
+        if: '${{ failure() && github.event.inputs.original_pr && github.event.inputs.dry_run == false }}'
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           ORIGINAL_PR: '${{ github.event.inputs.original_pr }}'
