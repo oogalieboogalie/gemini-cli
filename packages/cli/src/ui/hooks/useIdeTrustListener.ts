@@ -33,7 +33,7 @@ export function useIdeTrustListener() {
   const [connectionStatus, setConnectionStatus] = useState<IDEConnectionStatus>(
     IDEConnectionStatus.Disconnected,
   );
-  const previousTrust = useRef(isWorkspaceTrusted(settings.merged).isTrusted);
+  const previousTrust = useRef<boolean | undefined>(undefined);
 
   const subscribe = useCallback((onStoreChange: () => void) => {
     const handleStatusChange = (state: IDEConnectionState) => {
@@ -69,8 +69,12 @@ export function useIdeTrustListener() {
 
   useEffect(() => {
     const currentTrust = isWorkspaceTrusted(settings.merged).isTrusted;
-    // Trigger a restart if the overall trust status for the CLI has changed.
-    if (previousTrust.current !== currentTrust) {
+    // Trigger a restart if the overall trust status for the CLI has changed,
+    // but not on the initial trust value.
+    if (
+      previousTrust.current !== undefined &&
+      previousTrust.current !== currentTrust
+    ) {
       setNeedsRestart(true);
     }
     previousTrust.current = currentTrust;
