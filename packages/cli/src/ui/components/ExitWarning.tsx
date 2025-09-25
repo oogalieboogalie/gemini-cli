@@ -15,26 +15,18 @@ interface ExitWarningProps {
   };
 }
 
-export const ExitWarning: React.FC<ExitWarningProps> = ({ uiState }) => {
-  if (!uiState.dialogsVisible) {
-    return null;
-  }
-
-  if (uiState.ctrlCPressedOnce) {
-    return (
+export const ExitWarning: React.FC<ExitWarningProps> = ({ uiState }) => (
+  <>
+    {uiState.dialogsVisible && uiState.ctrlCPressedOnce && (
       <Box marginTop={1}>
         <Text color={theme.status.warning}>Press Ctrl+C again to exit.</Text>
       </Box>
-    );
-  }
+    )}
 
-  if (uiState.ctrlDPressedOnce) {
-    return (
+    {uiState.dialogsVisible && uiState.ctrlDPressedOnce && (
       <Box marginTop={1}>
         <Text color={theme.status.warning}>Press Ctrl+D again to exit.</Text>
       </Box>
-    );
-  }
-
-  return null;
-};
+    )}
+  </>
+);
