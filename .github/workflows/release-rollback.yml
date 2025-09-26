@@ -90,7 +90,7 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          git tag '${{ steps.origin_tag.outputs.ORIGIN_TAG } }}'-rollback '${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
+          git tag '${{ steps.origin_tag.outputs.ORIGIN_TAG }}'-rollback '${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
 
       - name: 'Log Dry run'
         if: "${{ github.event.inputs.dry-run == 'true' }}"
