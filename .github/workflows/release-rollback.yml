@@ -54,8 +54,6 @@ jobs:
 
       - name: 'Get Origin Version Tag'
         id: 'origin_tag'
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
           echo "ORIGIN_TAG=v${{ github.events.inputs.rollback_origin }}" >> "$GITHUB_OUTPUT"
@@ -66,7 +64,7 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          echo "ORIGIN_HASH=$(git rev-parse ${{ steps.origin_version.outputs.ORIGIN_TAG }})" >> "$GITHUB_OUTPUT"
+          echo "ORIGIN_HASH=$(git rev-parse ${{ steps.origin_tag.outputs.ORIGIN_TAG }})" >> "$GITHUB_OUTPUT"
 
       - name: 'Change tag'
         uses: './.github/actions/tag-npm-release'
@@ -83,7 +81,7 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          gh release delete '${{ steps.release_version.outputs.RELEASE_VERSION }}' --yes
+          gh release delete '${{ steps.origin_tag.outputs.ORIGIN_TAG }}' --yes
 
       - name: 'Add Rollback Tag'
         if: "${{ github.event.inputs.dry-run == 'false' }}"
@@ -91,7 +89,7 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          git tag rollback '${{ steps.release_hash.outputs.ORIGIN_HASH }}'
+          git tag rollback '${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
 
       - name: 'Log Dry run'
         if: "${{ github.event.inputs.dry-run == 'true' }}"
@@ -99,5 +97,5 @@ jobs:
         run: |
           echo "Dry run": Inputs - rollback_origin: ${{ github.event.inputs.rollback_origin }} rollback_destination: ${{ github.event.inputs.rollback_destination }} channel: ${{ github.event.inputs.channel }} ref: ${{ github.event.inputs.ref }}
           echo "Dry run": Outputs - ORIGIN_TAG: ${{ steps.origin_tag.outputs.ORIGIN_TAG }} ORIGIN_HASH: ${{ steps.origin_hash.outputs.ORIGIN_HASH }}
-          echo "Dry run: Would have deleted the github release with tag ${{ steps.release_version.outputs.RELEASE_VERSION }}"
+          echo "Dry run: Would have deleted the github release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}"
           echo "Dry run: Would have added tag rollback to ${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
