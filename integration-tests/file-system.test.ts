@@ -96,16 +96,23 @@ describe('file-system', () => {
     await rig.setup('should correctly handle file paths with spaces');
     const fileName = 'my test file.txt';
 
-    const prompt = `write "hello" to "${fileName}"`;
-    await rig.run(prompt);
+    const result = await rig.run(`write "hello" to "${fileName}"`);
 
     const foundToolCall = await rig.waitForToolCall('write_file');
+    if (!foundToolCall) {
+      printDebugInfo(rig, result);
+    }
     expect(
       foundToolCall,
       'Expected to find a write_file tool call',
     ).toBeTruthy();
 
     const newFileContent = rig.readFile(fileName);
+    if (newFileContent !== 'hello') {
+      console.error('File content mismatch - Debug info:');
+      console.error('Expected:', 'hello');
+      console.error('Actual:', newFileContent);
+    }
     expect(newFileContent).toBe('hello');
   });
 
@@ -116,9 +123,11 @@ describe('file-system', () => {
     rig.createFile(fileName, '1.0.0');
 
     const prompt = `Read the version from ${fileName} and write the next version 1.0.1 back to the file.`;
-    await rig.run(prompt);
+    const result = await rig.run(prompt);
 
+    await rig.waitForTelemetryReady();
     const toolLogs = rig.readToolLogs();
+
     const readCall = toolLogs.find(
       (log) => log.toolRequest.name === 'read_file',
     );
@@ -128,6 +137,10 @@ describe('file-system', () => {
         log.toolRequest.name === 'replace',
     );
 
+    if (!readCall || !writeCall) {
+      printDebugInfo(rig, result, { readCall, writeCall });
+    }
+
     expect(readCall, 'Expected to find a read_file tool call').toBeDefined();
     expect(
       writeCall,
@@ -135,6 +148,11 @@ describe('file-system', () => {
     ).toBeDefined();
 
     const newFileContent = rig.readFile(fileName);
+    if (newFileContent !== '1.0.1') {
+      console.error('File content mismatch - Debug info:');
+      console.error('Expected:', '1.0.1');
+      console.error('Actual:', newFileContent);
+    }
     expect(newFileContent).toBe('1.0.1');
   });
 
@@ -146,21 +164,22 @@ describe('file-system', () => {
     const expectedContent = 'Hey there, \nnew line\nnew line';
     rig.createFile(fileName, fileContent);
 
-    const prompt = `replace "test line" with "new line" in ${fileName}`;
-    await rig.run(prompt);
+    const result = await rig.run(
+      `replace "test line" with "new line" in ${fileName}`,
+    );
 
-    // The model may use 'replace' (possibly more than once) or a 'write_file' call.
-    // We wait for any file editing tool to be called.
     const foundToolCall = await rig.waitForAnyToolCall([
       'replace',
       'write_file',
     ]);
+    if (!foundToolCall) {
+      printDebugInfo(rig, result);
+    }
     expect(
       foundToolCall,
       'Expected to find a replace or write_file tool call',
     ).toBeTruthy();
 
-    // Verify that the edit was successful.
     const toolLogs = rig.readToolLogs();
     const successfulEdit = toolLogs.some(
       (log) =>
@@ -168,9 +187,20 @@ describe('file-system', () => {
           log.toolRequest.name === 'write_file') &&
         log.toolRequest.success,
     );
+    if (!successfulEdit) {
+      console.error(
+        'Expected a successful edit tool call, but none was found.',
+      );
+      printDebugInfo(rig, result);
+    }
     expect(successfulEdit, 'Expected a successful edit tool call').toBeTruthy();
 
     const newFileContent = rig.readFile(fileName);
+    if (newFileContent !== expectedContent) {
+      console.error('File content mismatch - Debug info:');
+      console.error('Expected:', expectedContent);
+      console.error('Actual:', newFileContent);
+    }
     expect(newFileContent).toBe(expectedContent);
   });
 
@@ -181,27 +211,33 @@ describe('file-system', () => {
     );
     const fileName = 'non_existent.txt';
 
-    const prompt = `In ${fileName}, replace "a" with "b"`;
-    await rig.run(prompt);
+    const result = await rig.run(`In ${fileName}, replace "a" with "b"`);
 
-    // Wait for any tool activity to be logged
     await rig.waitForTelemetryReady();
 
     const toolLogs = rig.readToolLogs();
 
-    // VERIFY: The model first tries to either 'replace' or 'read and write' the file, and that call fails.
     const toolAttempt = toolLogs.find(
       (log) =>
         log.toolRequest.name === 'read_file' ||
         log.toolRequest.name === 'replace',
     );
-    console.log(toolLogs);
+
+    if (!toolAttempt) {
+      printDebugInfo(rig, result);
+      expect.fail(
+        'Expected to find a replace or read_file call, but none was found.',
+      );
+    }
+
+    if (toolAttempt.toolRequest.success) {
+      console.error(
+        'Expected tool call to fail for non-existent file, but it succeeded.',
+      );
+    }
+
     expect(
-      toolAttempt,
-      'Expected to find a replace or read_file call',
-    ).toBeDefined();
-    expect(
-      toolAttempt?.toolRequest.success,
+      toolAttempt.toolRequest.success,
       'Expected replace or read_file tool to fail',
     ).toBe(false);
   });

@@ -100,7 +100,13 @@ describe('replace', () => {
     rig.createFile(fileName, fileContent);
 
     const prompt = `replace "goodbye" with "farewell" in ${fileName}`;
-    await rig.run(prompt);
+    const result = await rig.run(prompt);
+
+    const foundToolCall = await rig.waitForToolCall('replace');
+    if (!foundToolCall) {
+      printDebugInfo(rig, result);
+      expect.fail('A replace tool call was expected but not found.');
+    }
 
     const toolLogs = rig.readToolLogs();
     const replaceAttempt = toolLogs.find(
@@ -111,12 +117,23 @@ describe('replace', () => {
       replaceAttempt,
       'Expected to find a replace tool call',
     ).toBeDefined();
+
+    if (replaceAttempt?.toolRequest.success) {
+      console.error('Expected replace tool to fail, but it succeeded.');
+      console.error('Tool call args:', replaceAttempt.toolRequest.args);
+    }
+
     expect(
       replaceAttempt?.toolRequest.success,
       'Expected replace tool to fail',
     ).toBe(false);
 
     const newFileContent = rig.readFile(fileName);
+    if (newFileContent !== fileContent) {
+      console.error('File content was changed when it should not have been.');
+      console.error('Expected:', fileContent);
+      console.error('Actual:', newFileContent);
+    }
     expect(newFileContent).toBe(fileContent);
   });
 
@@ -130,12 +147,25 @@ describe('replace', () => {
     rig.createFile(fileName, originalContent);
 
     const prompt = `In ${fileName}, replace "// INSERT_CODE_HERE" with:\n${newBlock}`;
-    await rig.run(prompt);
+    const result = await rig.run(prompt);
 
     const foundToolCall = await rig.waitForToolCall('replace');
+    if (!foundToolCall) {
+      printDebugInfo(rig, result);
+    }
     expect(foundToolCall, 'Expected to find a replace tool call').toBeTruthy();
 
     const newFileContent = rig.readFile(fileName);
+
+    if (
+      newFileContent.replace(/\r\n/g, '\n') !==
+      expectedContent.replace(/\r\n/g, '\n')
+    ) {
+      console.error('File content mismatch - Debug info:');
+      console.error('Expected:', expectedContent);
+      console.error('Actual:', newFileContent);
+    }
+
     expect(newFileContent.replace(/\r\n/g, '\n')).toBe(
       expectedContent.replace(/\r\n/g, '\n'),
     );
@@ -152,12 +182,22 @@ describe('replace', () => {
     rig.createFile(fileName, originalContent);
 
     const prompt = `In ${fileName}, delete the entire block from "## DELETE THIS ##" to "## END DELETE ##" including the markers.`;
-    await rig.run(prompt);
+    const result = await rig.run(prompt);
 
     const foundToolCall = await rig.waitForToolCall('replace');
+    if (!foundToolCall) {
+      printDebugInfo(rig, result);
+    }
     expect(foundToolCall, 'Expected to find a replace tool call').toBeTruthy();
 
     const newFileContent = rig.readFile(fileName);
+
+    if (newFileContent !== expectedContent) {
+      console.error('File content mismatch - Debug info:');
+      console.error('Expected:', expectedContent);
+      console.error('Actual:', newFileContent);
+    }
+
     expect(newFileContent).toBe(expectedContent);
   });
 });
