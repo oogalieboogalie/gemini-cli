@@ -91,4 +91,73 @@ describe('replace', () => {
     const newFileContent = rig.readFile(fileName);
     expect(newFileContent).toBe(expectedContent);
   });
+
+  it('should fail when old_string is not found', async () => {
+    const rig = new TestRig();
+    await rig.setup('should fail when old_string is not found');
+    const fileName = 'no_match.txt';
+    const fileContent = 'hello world';
+    rig.createFile(fileName, fileContent);
+
+    const prompt = `replace "goodbye" with "farewell" in ${fileName}`;
+    await rig.run(prompt);
+
+    const toolLogs = rig.readToolLogs();
+    const replaceAttempt = toolLogs.find(
+      (log) => log.toolRequest.name === 'replace',
+    );
+
+    expect(
+      replaceAttempt,
+      'Expected to find a replace tool call',
+    ).toBeDefined();
+    expect(
+      replaceAttempt?.toolRequest.success,
+      'Expected replace tool to fail',
+    ).toBe(false);
+
+    const newFileContent = rig.readFile(fileName);
+    expect(newFileContent).toBe(fileContent);
+  });
+
+  it('should insert a multi-line block of text', async () => {
+    const rig = new TestRig();
+    await rig.setup('should insert a multi-line block of text');
+    const fileName = 'insert_block.js';
+    const originalContent = 'function hello() {\n  // INSERT_CODE_HERE\n}';
+    const newBlock = "console.log('hello');\n  console.log('world');";
+    const expectedContent = `function hello() {\n  ${newBlock}\n}`;
+    rig.createFile(fileName, originalContent);
+
+    const prompt = `In ${fileName}, replace "// INSERT_CODE_HERE" with:\n${newBlock}`;
+    await rig.run(prompt);
+
+    const foundToolCall = await rig.waitForToolCall('replace');
+    expect(foundToolCall, 'Expected to find a replace tool call').toBeTruthy();
+
+    const newFileContent = rig.readFile(fileName);
+    expect(newFileContent.replace(/\r\n/g, '\n')).toBe(
+      expectedContent.replace(/\r\n/g, '\n'),
+    );
+  });
+
+  it('should delete a block of text', async () => {
+    const rig = new TestRig();
+    await rig.setup('should delete a block of text');
+    const fileName = 'delete_block.txt';
+    const blockToDelete =
+      '## DELETE THIS ##\nThis is a block of text to delete.\n## END DELETE ##';
+    const originalContent = `Hello\n${blockToDelete}\nWorld`;
+    const expectedContent = 'Hello\nWorld';
+    rig.createFile(fileName, originalContent);
+
+    const prompt = `In ${fileName}, delete the entire block from "## DELETE THIS ##" to "## END DELETE ##" including the markers.`;
+    await rig.run(prompt);
+
+    const foundToolCall = await rig.waitForToolCall('replace');
+    expect(foundToolCall, 'Expected to find a replace tool call').toBeTruthy();
+
+    const newFileContent = rig.readFile(fileName);
+    expect(newFileContent).toBe(expectedContent);
+  });
 });
