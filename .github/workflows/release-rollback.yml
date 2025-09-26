@@ -56,7 +56,8 @@ jobs:
         id: 'origin_tag'
         shell: 'bash'
         run: |
-          echo "ORIGIN_TAG=v${{ github.events.inputs.rollback_origin }}" >> "$GITHUB_OUTPUT"
+          TAG_VALUE="v${{ github.event.inputs.rollback_origin }}"
+          echo "ORIGIN_TAG=$TAG_VALUE" >> "$GITHUB_OUTPUT"
 
       - name: 'Get Origin Commit Hash'
         id: 'origin_hash'
