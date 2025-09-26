@@ -109,7 +109,6 @@ jobs:
         run: |
           TARGET_TAG="${{ steps.origin_tag.outputs.ORIGIN_TAG }}"
           RELEASE_TAG=$(gh release view "$TARGET_TAG" --json tagName --jq .tagName)
-          
           if [ "$RELEASE_TAG" = "$TARGET_TAG" ]; then
             echo '❌ Failed to delete release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}'
             echo '❌ This means the release was not deleted, and the workflow should fail.'
@@ -124,9 +123,7 @@ jobs:
         shell: 'bash'
         run: |
           ROLLBACK_TAG_NAME="${{ steps.origin_tag.outputs.ORIGIN_TAG }}-rollback"
-
           echo "ROLLBACK_TAG=$ROLLBACK_TAG_NAME" >> "$GITHUB_OUTPUT"
-          
           git tag "$ROLLBACK_TAG_NAME" "${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
 
       - name: 'Verify Rollback Tag Added'
@@ -138,7 +135,6 @@ jobs:
           TARGET_TAG="${{ steps.rollback_tag.outputs.ROLLBACK_TAG }}"
           TARGET_HASH="${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
           ROLLBACK_COMMIT=$(git rev-parse -q --verify "$TARGET_TAG")
-          
           if [ "$ROLLBACK_COMMIT" != "$TARGET_HASH" ]; then
             echo '❌ Failed to add tag $TARGET_TAG to commit $TARGET_HASH'
             echo '❌ This means the tag was not added, and the workflow should fail.'
