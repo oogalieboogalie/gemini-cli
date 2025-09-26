@@ -3,8 +3,12 @@ name: 'Release: Rollback change'
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'The package version to tag (e.g., 0.5.0-preview-2). This version must already exist on the npm registry.'
+      rollback_origin:
+        description: 'The package version to rollback FROM and delete (e.g., 0.5.0-preview-2)'
+        required: true
+        type: 'string'
+      rollback_destination:
+        description: 'The package version to rollback TO (e.g., 0.5.0-preview-2). This version must already exist on the npm registry.'
         required: true
         type: 'string'
       channel:
@@ -48,19 +52,21 @@ jobs:
           registry-url: 'https://wombat-dressing-room.appspot.com'
           scope: '@google'
 
-      - name: 'Get Current Release Version'
-        id: 'release_version'
+      - name: 'Get Origin Version Tag'
+        id: 'origin_version'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          echo "RELEASE_VERSION=v$(npm view @google/gemini-cli dist-tags.${{ github.event.inputs.channel }})" >> "$GITHUB_OUTPUT"
+          echo "ORIGIN_TAG=v${{ github.events.inputs.rollback_origin }}" >> "$GITHUB_OUTPUT"
 
-      - name: 'Get Current Release Commit Hash'
+      - name: 'Get Origin Commit Hash'
         id: 'release_hash'
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          echo "RELEASE_HASH=$(git rev-parse ${{ steps.release_version.outputs.RELEASE_VERSION }})" >> "$GITHUB_OUTPUT"
+          echo "ORIGIN_HASH=$(git rev-parse ${{ steps.origin_version.outputs.ORIGIN_TAG }})" >> "$GITHUB_OUTPUT"
 
       - name: 'Change tag'
         uses: './.github/actions/tag-npm-release'
@@ -79,23 +85,19 @@ jobs:
         run: |
           gh release delete '${{ steps.release_version.outputs.RELEASE_VERSION }}' --yes
 
-      - name: 'Log Github Release Delete dry run'
-        if: |-
-          ${{ github.event.inputs.dry-run == 'true' }}
-        shell: 'bash'
-        run: |
-          echo "Dry run: Would have deleted the github release with tag ${{ steps.release_version.outputs.RELEASE_VERSION }}"
-
       - name: 'Add Rollback Tag'
         if: "${{ github.event.inputs.dry-run == 'false' }}"
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          git tag rollback '${{ steps.release_hash.outputs.RELEASE_HASH }}'
+          git tag rollback '${{ steps.release_hash.outputs.ORIGIN_HASH }}'
 
-      - name: 'Log Github Rollback Tag dry run'
+      - name: 'Log Dry run'
         if: "${{ github.event.inputs.dry-run == 'true' }}"
         shell: 'bash'
         run: |
-          echo "Dry run: Would have added tag rollback to ${{ steps.release_hash.outputs.RELEASE_HASH }}"
+          echo "Dry run": Inputs - rollback_origin: ${{ github.event.inputs.rollback_origin }} rollback_destination: ${{ github.event.inputs.rollback_destination }} channel: ${{ github.event.inputs.channel }} ref: ${{ github.event.inputs.ref }} }}
+          echo "Dry run": Outputs - RELEASE_VERSION: ${{ steps.release_version.outputs.RELEASE_VERSION }} ORIGIN_HASH: ${{ steps.release_hash.outputs.ORIGIN_HASH }}
+          echo "Dry run: Would have deleted the github release with tag ${{ steps.release_version.outputs.RELEASE_VERSION }}"
+          echo "Dry run: Would have added tag rollback to ${{ steps.release_hash.outputs.ORIGIN_HASH }}"
