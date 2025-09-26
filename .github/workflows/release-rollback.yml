@@ -139,8 +139,17 @@ jobs:
         if: "${{ github.event.inputs.dry-run == 'true' }}"
         shell: 'bash'
         run: |
-          echo "Inputs - rollback_origin: ${{ github.event.inputs.rollback_origin }} rollback_destination: ${{ github.event.inputs.rollback_destination }} channel: ${{ github.event.inputs.channel }} ref: ${{ github.event.inputs.ref }}
-          echo "Outputs - ORIGIN_TAG: ${{ steps.origin_tag.outputs.ORIGIN_TAG }} ORIGIN_HASH: ${{ steps.origin_hash.outputs.ORIGIN_HASH }}
+          echo "Inputs:
+          echo - rollback_origin: ${{ github.event.inputs.rollback_origin }} 
+          echo - rollback_destination: ${{ github.event.inputs.rollback_destination }}
+          echo - channel: ${{ github.event.inputs.channel }}
+          echo - ref: ${{ github.event.inputs.ref }}
+
+          echo "Outputs:
+          echo - ORIGIN_TAG: ${{ steps.origin_tag.outputs.ORIGIN_TAG }}
+          echo - ORIGIN_HASH: ${{ steps.origin_hash.outputs.ORIGIN_HASH }}
+          echo - ROLLBACK_TAG: ${{ steps.rollback_tag.outputs.ROLLBACK_TAG }}"
+
           echo "Would have npm deprecate @google/gemini-cli@${{ github.event.inputs.rollback_origin }} and @google/gemini-core@${{ github.event.inputs.rollback_origin }}"
           echo "Would have deleted the github release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}"
           echo "Would have added tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}-rollback to ${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
