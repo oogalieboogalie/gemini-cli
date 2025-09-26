@@ -99,4 +99,4 @@ jobs:
           echo "Dry run": Inputs - rollback_origin: ${{ github.event.inputs.rollback_origin }} rollback_destination: ${{ github.event.inputs.rollback_destination }} channel: ${{ github.event.inputs.channel }} ref: ${{ github.event.inputs.ref }}
           echo "Dry run": Outputs - ORIGIN_TAG: ${{ steps.origin_tag.outputs.ORIGIN_TAG }} ORIGIN_HASH: ${{ steps.origin_hash.outputs.ORIGIN_HASH }}
           echo "Dry run: Would have deleted the github release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}"
-          echo "Dry run: Would have added tag ${{ steps.origin_tag.outputs.ORIGIN_TAG } }}-rollback to ${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
+          echo "Dry run: Would have added tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}-rollback to ${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
