@@ -101,13 +101,39 @@ jobs:
         run: |
           gh release delete '${{ steps.origin_tag.outputs.ORIGIN_TAG }}' --yes
 
-      - name: 'Add Rollback Tag'
+      - name: 'Verify Origin Release Deletion'
         if: "${{ github.event.inputs.dry-run == 'false' }}"
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          git tag '${{ steps.origin_tag.outputs.ORIGIN_TAG }}'-rollback '${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
+          RELEASE_TAG=$(gh release view ${{ steps.origin_tag.outputs.ORIGIN_TAG }} --json tagName --jq .tagName)"
+          if RELEASE_TAG == ${{ steps.origin_tag.outputs.ORIGIN_TAG }}; then
+            echo '❌ Failed to delete release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}'
+            echo '❌ This means the release was not deleted, and the workflow should fail.'
+            exit 1
+
+      - name: 'Add Rollback Tag'
+        id: "rollback_tag"
+        if: "${{ github.event.inputs.dry-run == 'false' }}"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        shell: 'bash'
+        run: |
+          echo "ROLLBACK_TAG=${{ steps.origin_tag.outputs.ORIGIN_TAG }}-rollback" >> "$GITHUB_OUTPUT"
+          git tag $ROLLBACK_TAG '${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
+
+      - name: 'Verify Rollback Tag Added'
+        if: "${{ github.event.inputs.dry-run == 'false' }}"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        shell: 'bash'
+        run: |
+          ROLLBACK_COMMIT=$(git rev-parse -q --verify ${{ steps.rollback_tag.outputs.ROLLBACK_TAG }})
+          if ROLLBACK_COMMIT != ${{ steps.origin_hash.outputs.ORIGIN_HASH }}; then
+            echo '❌ Failed to add tag ${{ steps.rollback_tag.outputs.ROLLBACK_TAG }} to commit ${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
+            echo '❌ This means the tag was not added, and the workflow should fail.'
+            exit 1
 
       - name: 'Log Dry run'
         if: "${{ github.event.inputs.dry-run == 'true' }}"
