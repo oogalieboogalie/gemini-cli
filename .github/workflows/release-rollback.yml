@@ -85,7 +85,7 @@ jobs:
         run: |
           npm deprecate @google/gemini-cli@${{ github.event.inputs.rollback_origin }} "This version has been rolled back."
 
-      - name: 'Deprecate Core Npm Package
+      - name: 'Deprecate Core Npm Package'
         if: "${{ github.event.inputs.dry-run == 'false' }}"
         env:
           NODE_AUTH_TOKEN: '${{ secrets.WOMBAT_TOKEN_CORE }}'
