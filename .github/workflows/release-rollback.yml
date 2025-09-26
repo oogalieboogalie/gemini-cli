@@ -9,11 +9,11 @@ on:
         type: 'string'
       rollback_destination:
         description: 'The package version to rollback TO (e.g., 0.5.0-preview-2). This version must already exist on the npm registry.'
-        required: true
+        required: false
         type: 'string'
       channel:
-        description: 'The npm dist-tag to apply (e.g., latest, preview, nightly).'
-        required: true
+        description: 'The npm dist-tag to apply to rollback_destination (e.g., latest, preview, nightly). REQUIRED IF rollback_destination is set.'
+        required: false
         type: 'choice'
         options:
           - 'latest'
@@ -68,6 +68,7 @@ jobs:
           echo "ORIGIN_HASH=$(git rev-parse ${{ steps.origin_tag.outputs.ORIGIN_TAG }})" >> "$GITHUB_OUTPUT"
 
       - name: 'Change tag'
+        if: "${{ github.event.inputs.rollback_destination != '' }}"
         uses: './.github/actions/tag-npm-release'
         with:
           channel: '${{ github.event.inputs.channel }}'
