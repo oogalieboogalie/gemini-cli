@@ -107,8 +107,10 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          RELEASE_TAG=$(gh release view ${{ steps.origin_tag.outputs.ORIGIN_TAG }} --json tagName --jq .tagName)
-          if [ "$RELEASE_TAG" = '${{ steps.origin_tag.outputs.ORIGIN_TAG }}' ]; then
+          TARGET_TAG="${{ steps.origin_tag.outputs.ORIGIN_TAG }}"
+          RELEASE_TAG=$(gh release view "$TARGET_TAG" --json tagName --jq .tagName)
+          
+          if [ "$RELEASE_TAG" = "$TARGET_TAG" ]; then
             echo '❌ Failed to delete release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}'
             echo '❌ This means the release was not deleted, and the workflow should fail.'
             exit 1
@@ -121,8 +123,11 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          echo "ROLLBACK_TAG=${{ steps.origin_tag.outputs.ORIGIN_TAG }}-rollback" >> "$GITHUB_OUTPUT"
-          git tag $ROLLBACK_TAG '${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
+          ROLLBACK_TAG_NAME="${{ steps.origin_tag.outputs.ORIGIN_TAG }}-rollback"
+
+          echo "ROLLBACK_TAG=$ROLLBACK_TAG_NAME" >> "$GITHUB_OUTPUT"
+          
+          git tag "$ROLLBACK_TAG_NAME" "${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
 
       - name: 'Verify Rollback Tag Added'
         if: "${{ github.event.inputs.dry-run == 'false' }}"
@@ -130,9 +135,12 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          ROLLBACK_COMMIT=$(git rev-parse -q --verify ${{ steps.rollback_tag.outputs.ROLLBACK_TAG }})
-          if "$ROLLBACK_COMMIT" != "${{ steps.origin_hash.outputs.ORIGIN_HASH }}"; then
-            echo '❌ Failed to add tag ${{ steps.rollback_tag.outputs.ROLLBACK_TAG }} to commit ${{ steps.origin_hash.outputs.ORIGIN_HASH }}'
+          TARGET_TAG="${{ steps.rollback_tag.outputs.ROLLBACK_TAG }}"
+          TARGET_HASH="${{ steps.origin_hash.outputs.ORIGIN_HASH }}"
+          ROLLBACK_COMMIT=$(git rev-parse -q --verify "$TARGET_TAG")
+          
+          if [ "$ROLLBACK_COMMIT" != "$TARGET_HASH" ]; then
+            echo '❌ Failed to add tag $TARGET_TAG to commit $TARGET_HASH'
             echo '❌ This means the tag was not added, and the workflow should fail.'
             exit 1
           fi
