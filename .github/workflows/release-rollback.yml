@@ -77,10 +77,20 @@ jobs:
           wombat-token-core: '${{ secrets.WOMBAT_TOKEN_CORE }}'
           wombat-token-cli: '${{ secrets.WOMBAT_TOKEN_CLI }}'
 
-      - name: 'Deprecate npm package'
+      - name: 'Deprecate Cli Npm Package'
+        if: "${{ github.event.inputs.dry-run == 'false' }}"
+        env:
+          NODE_AUTH_TOKEN: '${{ secrets.WOMBAT_TOKEN_CLI }}'
         shell: 'bash'
         run: |
           npm deprecate @google/gemini-cli@${{ github.event.inputs.rollback_origin }} "This version has been rolled back."
+
+      - name: 'Deprecate Core Npm Package
+        if: "${{ github.event.inputs.dry-run == 'false' }}"
+        env:
+          NODE_AUTH_TOKEN: '${{ secrets.WOMBAT_TOKEN_CORE }}'
+        shell: 'bash'
+        run: |
           npm deprecate @google/gemini-core@${{ github.event.inputs.rollback_origin }} "This version has been rolled back."
 
       - name: 'Delete Github Release'
