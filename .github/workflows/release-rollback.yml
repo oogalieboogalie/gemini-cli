@@ -116,7 +116,7 @@ jobs:
           fi
 
       - name: 'Add Rollback Tag'
-        id: "rollback_tag"
+        id: 'rollback_tag'
         if: "${{ github.event.inputs.dry-run == 'false' }}"
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
