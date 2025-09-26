@@ -30,7 +30,7 @@ export const ScreenReaderAppLayout: React.FC = () => {
         <Composer />
       )}
 
-      <ExitWarning uiState={uiState} />
+      <ExitWarning />
     </Box>
   );
 };

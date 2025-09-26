@@ -29,7 +29,7 @@ export const DefaultAppLayout: React.FC = () => {
           <Composer />
         )}
 
-        <ExitWarning uiState={uiState} />
+        <ExitWarning />
       </Box>
     </Box>
   );
