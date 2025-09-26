@@ -71,7 +71,7 @@ jobs:
         uses: './.github/actions/tag-npm-release'
         with:
           channel: '${{ github.event.inputs.channel }}'
-          version: '${{ github.event.inputs.version }}'
+          version: '${{ github.event.inputs.rollback_destination }}'
           dry-run: '${{ github.event.inputs.dry-run }}'
           wombat-token-core: '${{ secrets.WOMBAT_TOKEN_CORE }}'
           wombat-token-cli: '${{ secrets.WOMBAT_TOKEN_CLI }}'
