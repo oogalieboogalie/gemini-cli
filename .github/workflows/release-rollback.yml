@@ -107,7 +107,7 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         shell: 'bash'
         run: |
-          RELEASE_TAG=$(gh release view ${{ steps.origin_tag.outputs.ORIGIN_TAG }} --json tagName --jq .tagName)"
+          RELEASE_TAG=$(gh release view ${{ steps.origin_tag.outputs.ORIGIN_TAG }} --json tagName --jq .tagName)
           if RELEASE_TAG == ${{ steps.origin_tag.outputs.ORIGIN_TAG }}; then
             echo '❌ Failed to delete release with tag ${{ steps.origin_tag.outputs.ORIGIN_TAG }}'
             echo '❌ This means the release was not deleted, and the workflow should fail.'
